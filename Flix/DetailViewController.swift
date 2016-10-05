@@ -9,6 +9,7 @@
 import UIKit
 import AFNetworking
 
+
 class DetailViewController: UIViewController {
 
     @IBOutlet weak var posterPicture: UIImageView!
@@ -22,6 +23,7 @@ class DetailViewController: UIViewController {
     @IBOutlet weak var infoView: UIView!
     
     var movie = NSDictionary!()
+    
     
     override func viewDidLoad() {
         

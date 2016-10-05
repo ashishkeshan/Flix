@@ -8,22 +8,32 @@
 
 import UIKit
 import AFNetworking
+import MBProgressHUD
 
 class MovieViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
     @IBOutlet weak var tableView: UITableView!
     
     var movies:[NSDictionary]?
+    var endpoint: String!
     
     override func viewDidLoad() {
         
         super.viewDidLoad()
         
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action: #selector(refreshControlAction(_:)), forControlEvents: UIControlEvents.ValueChanged)
+        tableView.insertSubview(refreshControl, atIndex: 0)
+        
         tableView.dataSource = self
         tableView.delegate = self
         
+        
+    }
+    
+    func refreshControlAction(refreshControl: UIRefreshControl){
         let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
-        let url = NSURL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")
+        let url = NSURL(string: "https://api.themoviedb.org/3/movie/\(endpoint)?api_key=\(apiKey)")
         let request = NSURLRequest(
             URL: url!,
             cachePolicy: NSURLRequestCachePolicy.ReloadIgnoringLocalCacheData,
@@ -35,19 +45,23 @@ class MovieViewController: UIViewController, UITableViewDataSource, UITableViewD
             delegateQueue: NSOperationQueue.mainQueue()
         )
         
+        MBProgressHUD.showHUDAddedTo(self.view, animated: true)
+        
         let task: NSURLSessionDataTask = session.dataTaskWithRequest(request, completionHandler: { (dataOrNil, response, error) in
             if let data = dataOrNil {
                 if let responseDictionary = try! NSJSONSerialization.JSONObjectWithData(data, options:[]) as? NSDictionary {
-                    print("response: \(responseDictionary)")
+                    MBProgressHUD.hideHUDForView(self.view, animated: true)
                     
                     self.movies = responseDictionary["results"] as? [NSDictionary]
                     
                     self.tableView.reloadData()
+                    refreshControl.endRefreshing()
                     
                 }
             }
         })
         task.resume()
+
         
     }
     
